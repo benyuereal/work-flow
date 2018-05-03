@@ -314,7 +314,7 @@
           address: ''
         },
         modal10:false,//控制绑定
-        modal9: false,
+        procedureModal: false,
         guize: '',
         input2: '',
         input21: '',

@@ -58,7 +58,7 @@
     <Row>
       <Col span="1">&nbsp;</Col>
       <Col span="6">
-        <Button type="primary" style="width: 90px">add</Button>
+        <Button type="primary" style="width: 90px" @click="show">add</Button>
         <Button type="primary" style="width: 90px">batch add</Button>
       </Col>
       <Col span="">&nbsp;</Col>
@@ -110,18 +110,23 @@
 
     <!--弹出的表单域-->
     <Modal
+      :loading="loading"
+      @on-ok="validateData"
       title="流程配置管理"
-      v-model="modal9"
+      v-model="procedureModal"
       :styles="{top: '20px'}">
-      <Form :model="formItem" :label-width="80" label-position="left">
-        <FormItem label="流程名称">
-          <Input v-model="formItem.input" placeholder="Enter something..." clearable></Input>
+      <Form ref="formItemData" :model="formItem" :label-width="80" label-position="left" :rules="ruleValidate">
+        <FormItem label="流程名称" prop="procedureName">
+          <Input v-model="formItem.procedureName" placeholder="Enter something..." clearable></Input>
         </FormItem>
-        <FormItem label="节点模板选择">
-          <Select v-model="formItem.select">
-            <Option value="beijing">New York</Option>
-            <Option value="shanghai">London</Option>
-            <Option value="shenzhen">Sydney</Option>
+        <FormItem label="节点模板选择" prop="select">
+          <Select v-model="formItem.select" style="float: top">
+            <!--<Option value="1">提单</Option>-->
+            <!--<Option value="2">审核</Option>-->
+            <Option v-for="item in nodeModelList" :value="item.value" :key="item.value" style="width: 100%">{{
+              item.label }}
+            </Option>
+
           </Select>
         </FormItem>
 
@@ -159,7 +164,7 @@
           </Col>
           <Col span="6" style="border-bottom: 1px solid gainsboro;border-right: 1px solid gainsboro;height: 100%">
             <CheckboxGroup v-model="formItem.checkbox" style="text-align: left; margin-left: 20px;margin-top: 20px"
-                           @on-change="checkCheck(1)">
+                           prop="checkbox" @on-change="checkCheck(1)">
               <Checkbox label="城市校验"></Checkbox>
               <Checkbox label="余额校验"></Checkbox>
               <Checkbox label="类别校验"></Checkbox>
@@ -167,7 +172,7 @@
           </Col>
           <Col span="5" style="border-bottom: 1px solid gainsboro;border-right: 1px solid gainsboro;height: 100%">
             <CheckboxGroup v-model="formItem.checkLogic" style="text-align: left;margin-left: 30px;margin-top: 20px"
-                           @on-change="checkCheck(2)">
+                           @on-change="checkCheck(2)" prop="checkLogic">
               <Checkbox label="并"></Checkbox>
               <Checkbox label="或"></Checkbox>
               <Checkbox label="("></Checkbox>
@@ -228,6 +233,26 @@
     },
 
     methods: {
+
+      //确定校验
+      validateData(name) {
+
+        setTimeout(() => {
+          this.$refs.formItemData.validate((valid) => {
+            if (valid) {
+              //关闭表单
+              this.procedureModal = false;
+              this.$Message.success('Success!');
+            } else {
+              //关闭下面的按钮
+              this.loading = false;
+              // this.$Message.error('Fail!');
+            }
+          });
+        }, 1000);
+        //进行校验
+
+      },
 
       //
       handlePageSize() {
@@ -320,8 +345,9 @@
         // })
         //清空两个checkbox以及文本
         this.refreshText();
-        this.modal9 = true;
+        this.procedureModal = true;
       }
+
       ,
       remove(index) {
         this.data6.splice(index, 1);
@@ -384,6 +410,10 @@
     name: 'app',
     data() {
       return {
+        //loading
+        loading: true,
+        //绑定表格的属性值
+        formItemData: '',
         pageRequest: {
           prevPage: 0,
           nextPage: 0,
@@ -431,7 +461,7 @@
             ''
         }
         ,
-        modal9: false,
+        procedureModal: false,
         guize:
           '',
         input2:
@@ -469,6 +499,16 @@
               label: 'Canberra'
             }
           ],
+        nodeModelList: [
+          {
+            value: '1',
+            label: '提单'
+          },
+          {
+            value: '2',
+            label: '审核'
+          },
+        ],
         model1:
           '',
         columns1:
@@ -617,7 +657,7 @@
         //下面是form表单
         formItem:
           {
-            input: '',
+            procedureName: '',
             select:
               '',
             radio:
@@ -636,7 +676,26 @@
               [20, 50],
             textarea:
               ''
-          }
+          },
+        //数据校验
+        ruleValidate: {
+          procedureName: [
+            {required: true, message: '请填写流程名称', trigger: 'blur'}
+          ],
+          select: [
+            {required: true, message: '请填写节点模板', trigger: 'change'}
+          ],
+
+          checkbox: [
+            {required: true, type: 'array', min: 1, message: '请选择至少一个模板名称', trigger: 'change'},
+            {type: 'array', max: 4, message: 'Choose two hobbies at best', trigger: 'change'}
+          ],
+          checkLogic: [
+            {required: true, type: 'array', min: 1, message: '请选择至少一个模板关系', trigger: 'change'},
+            {type: 'array', max: 4, message: '请选择至少一种逻辑', trigger: 'change'}
+          ],
+
+        }
 
       }
 
