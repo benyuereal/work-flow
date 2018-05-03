@@ -1,0 +1,39 @@
+/*!***/
+/*上侧选择栏css定义*/
+ /**!*/
+/*!***/
+/*有一个父级别的div来摆正位置*/
+ /**!*/
+/*#select-column-parent{*/
+  /*position: absolute;*/
+  /*left: 68px;*/
+  /*top: 79px;*/
+  /*width: 1074px;*/
+  /*height: 84px;*/
+/*}*/
+/*!***/
+/*这个才是真正填充那些东西的div*/
+ /**!*/
+/*#select-column{*/
+  /*position: absolute;*/
+  /*left: 0px;*/
+  /*top: 0px;*/
+  /*width: 1074px;*/
+  /*height: 84px;*/
+  /*background: inherit;*/
+  /*background-color: rgba(51, 102, 255, 1);*/
+  /*border: none;*/
+  /*border-radius: 0px;*/
+  /*-moz-box-shadow: none;*/
+  /*-webkit-box-shadow: none;*/
+  /*box-shadow: none;*/
+
+/*}*/
+
+/*!***/
+/*构造文字与输入框的元素*/
+ /**!*/
+/*#select-column-search-model{*/
+
+/*}*/
+
