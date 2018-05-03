@@ -234,10 +234,15 @@
         alert(11);
       },
       //转换页码
-      transferPage() {
+      transferPage(index) {
         //
-        alert(this.pageRequest.currentPage);
-
+        alert(index);
+        //index是要往第几页
+        //那么currentPage需要改变
+        this.pageRequest.currentPage = index;
+        //而且下一页和上一页都需要改变
+        // this.pageRequest.prevPage=
+        this.findProcedure();
       }
       ,
       getdata() {
