@@ -347,7 +347,7 @@
           }
         ],
         model1: '',
-        columns1: [
+        columnsProcedure: [
           {
             title: '序号',
             key: 'name',

@@ -204,7 +204,8 @@
         </Row>
         <Row>
           <Col span="24">
-            <Table id="fuckThis" style="background: white" border :columns="columns1" :data="data1"></Table>&nbsp;
+            <Table id="fuckThis" style="background: white" border :columns="columnsProcedure"
+                   :data="procedureDetails"></Table>&nbsp;
           </Col>
 
 
@@ -228,11 +229,31 @@
   export default {
 
     created() {
+      //列表页获取数据
       this.getdata();
+      //查询流程配置
       this.findProcedure();
+      //修改后台的数据以供展示
+      this.initData();
     },
 
     methods: {
+      //修改后台返回的数据,用来展示
+      initData() {
+        //
+        var ladingBill = '提单';
+        var examineVerify = '审核';
+        var procedureDetails = this.procedureDetails;
+        procedureDetails.forEach((obj) => {
+          //遍历每一个对象
+          if (obj.nodeType === '1') {
+            obj.nodeType = ladingBill;
+          } else if (obj.nodeType === '2') {
+            obj.nodeType = examineVerify;
+
+          }
+        });
+      },
 
       //确定校验
       validateData(name) {
@@ -240,6 +261,8 @@
         setTimeout(() => {
           this.$refs.formItemData.validate((valid) => {
             if (valid) {
+              //校验通过 首先保存数据
+              this.saveProcedures();
               //关闭表单
               this.procedureModal = false;
               this.$Message.success('Success!');
@@ -253,6 +276,44 @@
         //进行校验
 
       },
+      //校验通过之后 要发送后台保存的请求
+      saveProcedures() {
+        //
+        var params = {
+            procedureDetailRequests: [
+              {
+                id: 19,
+                procedureConfigId: 18,
+                nodeType: '1',
+                procedureRules: 'fuck-------this'
+              },
+              {
+                id: 20,
+                procedureConfigId: 22,
+                nodeType: '2',
+                procedureRules: 'fuck-------that'
+              },
+
+
+            ],
+          }
+        ;
+        this.$http.get(
+          "http://localhost:9501/procedure/save",//请求地址
+          {
+            params: params//参数
+          },
+          {
+            emulateJSON: true,//是否是json
+          }
+        ).then(function (res) {
+          return true;
+        }, function (res) {
+          alert(res.status);
+          return false;
+        });
+      },
+
 
       //
       handlePageSize() {
@@ -318,22 +379,22 @@
       addNode() {
         //对象赋值做好
         var node = this.node;
-        node.age = 1;
-        node.address = '......';
-        node.name = 'ben.yue';
+        node.id = 1;
+        node.nodeType = '提单';
+        node.procedureRules = 'ben.yue';
         //最后的结果就是将这个对象放到顺序表里面去
 
         //刷新表格
-        this.data1.push(node);
+        this.procedureDetails.push(node);
       }
       ,
 
 
       //删除弹出框中的某一个值
       removeNode(index) {
-        var data1 = this.data1;
+        var procedureDetails = this.procedureDetails;
         //删除一个数组
-        data1.splice(index, 1);
+        procedureDetails.splice(index, 1);
       }
       ,
 
@@ -511,23 +572,23 @@
         ],
         model1:
           '',
-        columns1:
+        columnsProcedure:
           [
             {
               title: '序号',
-              key: 'name',
+              key: 'id',
               width: 142.33,
 
             },
             {
               title: '节点',
-              key: 'age',
+              key: 'nodeType',
               width: 101.66,
 
             },
             {
               title: '规则',
-              key: 'address'
+              key: 'procedureRules'
             },
             {
               title: '操作',
@@ -554,19 +615,19 @@
               }
             }
           ],
-        data1:
+        procedureDetails:
           [
             {
-              name: 'John Brown',
-              age: 18,
-              address: 'New York No. 1 Lake Park',
-              date: '2016-10-03'
+              id: 19,
+              procedureConfigId: 18,
+              nodeType: '1',
+              procedureRules: 'fuck-------this'
             },
             {
-              name: 'Jim Green',
-              age: 24,
-              address: 'London No. 1 Lake Park',
-              date: '2016-10-01'
+              id: 20,
+              procedureConfigId: 22,
+              nodeType: '2',
+              procedureRules: 'fuck-------that'
             },
 
 
