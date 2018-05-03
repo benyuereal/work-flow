@@ -236,7 +236,6 @@
       //转换页码
       transferPage(index) {
         //
-        alert(index);
         //index是要往第几页
         //那么currentPage需要改变
         this.pageRequest.currentPage = index;
