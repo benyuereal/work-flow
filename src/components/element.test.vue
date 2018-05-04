@@ -263,9 +263,18 @@
             if (valid) {
               //校验通过 首先保存数据
               this.saveProcedures();
-              //关闭表单
-              this.procedureModal = false;
-              this.$Message.success('Success!');
+              //验证返回状态
+              var status = this.responseStatus;
+              if (status) {
+                //关闭表单
+                this.procedureModal = false;
+                this.$Message.success('Success!');
+              } else {
+                this.$Message.error('Fail!');
+                this.loading = false;
+
+              }
+
             } else {
               //关闭下面的按钮
               this.loading = false;
@@ -279,25 +288,28 @@
       //校验通过之后 要发送后台保存的请求
       saveProcedures() {
         //
+        var request = [
+          {
+            id: 19,
+            procedureConfigId: 18,
+            nodeType: '1',
+            procedureRules: 'fuck-------this'
+          },
+          {
+            id: 20,
+            procedureConfigId: 22,
+            nodeType: '2',
+            procedureRules: 'fuck-------that'
+          },
+
+
+        ];
         var params = {
-            procedureDetailRequests: [
-              {
-                id: 19,
-                procedureConfigId: 18,
-                nodeType: '1',
-                procedureRules: 'fuck-------this'
-              },
-              {
-                id: 20,
-                procedureConfigId: 22,
-                nodeType: '2',
-                procedureRules: 'fuck-------that'
-              },
-
-
-            ],
+            request: JSON.stringify(request),
           }
         ;
+
+        alert(request);
         this.$http.get(
           "http://localhost:9501/procedure/save",//请求地址
           {
@@ -307,10 +319,16 @@
             emulateJSON: true,//是否是json
           }
         ).then(function (res) {
-          return true;
+          var data = res.data;
+          var code = data.code;
+          if (code === 0) {
+            this.responseStatus = true;
+          } else {
+            this.responseStatus = false;
+          }
         }, function (res) {
           alert(res.status);
-          return false;
+          this.responseStatus = false;
         });
       },
 
@@ -471,6 +489,8 @@
     name: 'app',
     data() {
       return {
+        //控制结果返回状态
+        responseStatus: false,
         //loading
         loading: true,
         //绑定表格的属性值
