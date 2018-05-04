@@ -233,7 +233,7 @@
       this.getdata();
       //查询流程配置
       this.findProcedure();
-      //修改后台的数据以供展示
+      //修改后台的数据以供展示,将返回的数字类型构造成中文展示的数据
       this.initData();
     },
 
@@ -255,7 +255,7 @@
         });
       },
 
-      //确定校验
+      //确定校验,检验form表单里面的数据
       validateData(name) {
 
         setTimeout(() => {
@@ -365,7 +365,7 @@
 
         };
         this.$http.get(
-          "http://localhost:9501/procedure/test",//请求地址
+          "http://localhost:9501/procedure/test",//请求地址，有条件查询流程配置数据
           {
             params: params//参数
           },

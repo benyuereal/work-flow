@@ -19,18 +19,19 @@
 
         <Row style="">
           <Col span="5" id="select-column">
-            <p> 签单类型：</p><Select v-model="model1" style="width:100px">
-            <Option v-for="item in cityList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+            <p> 品牌：</p><Select v-model="brandTypeModal" style="width:100px">
+            <Option v-for="item in brandType" :value="item.value" :key="item.value">{{ item.label }}</Option>
           </Select>
           </Col>
           <Col span="5" id="select-column-name">
-            <p> 订单来源：</p><Select v-model="model1" style="width:100px">
-            <Option v-for="item in cityList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+            <p> 订单来源：</p><Select v-model="sourceTypeModal" style="width:100px">
+            <Option v-for="item in sourceType" :value="item.value" :key="item.value">{{ item.label }}</Option>
           </Select></Col>
           <Col span="5" id="select-column-signature-type" style="width:180px ">
-            <p style="float: left;text-align: center;font-size: 14px;margin-top: 6px"> 签单类型：</p><Select v-model="model1"
-                                                                                                        style="width:100px">
-            <Option v-for="item in cityList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+            <p style="float: left;text-align: center;font-size: 14px;margin-top: 6px"> 签单类型：</p><Select
+            v-model="writtenTypeModal"
+            style="width:100px">
+            <Option v-for="item in writtenType" :value="item.value" :key="item.value">{{ item.label }}</Option>
           </Select>
           </Col>
 
@@ -72,7 +73,7 @@
     <Row>
       <Col span="2">&nbsp;</Col>
       <Col span="20">
-        <Table border :columns="columns2" :data="data3"></Table>
+        <Table border :columns="entranceColumn" :data="entranceData"></Table>
       </Col>
       <Col span="2">&nbsp;</Col>
 
@@ -203,14 +204,83 @@
   export default {
 
 
+    created() {
+      //初始化数据
+      this.initData();
+      //初始 获取表格中 数据
+      this.getEntranceData(1);
+    },
+
     methods: {
 
+      //初始化表格
+      getEntranceData(page) {
 
+        //请求数据，有两个 一个是分页的请求对象，一个是搜索条件的对象
+        var request = {
+          //请求的搜索条件
+
+          brandType: 1,
+          //分页条件
+          currentPage: page,
+          pageSize: 10,
+        };
+
+        //获取入口表格数据
+        var data;
+        this.$http.get(
+          "http://127.0.0.1:9501/entrance/find",
+          {
+            params: request,
+          },
+          {
+            emulateJSON: true,//是否是json
+          }
+        ).then(function (response) {
+          data = response.data;
+          //如果状态是0 就展示 否则展示默认的
+          var code = data.code;
+          alert(JSON.stringify(data));
+        })
+      },
+
+      //获取初始化数据
+      initData() {
+        //初始化数据
+        var data;
+        this.$http.get(
+          "http://127.0.0.1:9501/init/formatted",
+          {
+            emulateJSON: true,//是否是json
+          }
+        ).then(function (response) {
+          data = response.data;
+          //如果状态是0 就展示 否则展示默认的
+          var code = data.code;
+          // alert(JSON.stringify(data));
+
+          if (code === 0) {
+            //展示数据开始
+            var playData = data.data;
+            //展示品牌选择
+            this.brandType = playData.brandType;
+            //展示签单选择
+            this.writtenType = playData.writtenType;
+            //展示订单来源选择
+            this.sourceType = playData.sourceType;
+
+          } else {
+            //什么也不做
+          }
+          // alert(JSON.stringify(data));
+        })
+      },
       //获取后台的json数据
-      getJSON () {
+      getJSON() {
         this.$http.get("http://127.0.0.1/9501/workflowManage/test", {
           headers: this.headers
         }).then(function (response) {
+          //
           alert(response.bodyText);
         })
       },
@@ -308,12 +378,16 @@
     name: 'app',
     data() {
       return {
-        //请求header
-        HEADERS: {
-          "X-Requested-With": "XMLHttpRequest",
-          'Content-Type': 'application/x-www-form-urlencoded',
-          "Access-Control-Allow-Origin": "*"
-        },
+
+        //品牌
+        brandType: [],
+        brandTypeModal: '',
+        //签单类型
+        writtenType: [],
+        writtenTypeModal: '',
+        //订单来源类型
+        sourceType: [],
+        sourceTypeModal: '',
         node: {//这个对象用来承载用户点击对号生成的对象
           name: '',
           age: '',
@@ -352,7 +426,6 @@
             label: 'Canberra'
           }
         ],
-        model1: '',
         columnsProcedure: [
           {
             title: '序号',
@@ -411,36 +484,66 @@
 
 
         ],
-        columns2: [
+        entranceColumn: [
           {
-            title: 'Name',
-            key: 'name',
-            width: 100,
+            title: '序号',
+            key: 'id',
+            width: 60,
             fixed: 'left'
           },
           {
-            title: 'Age',
-            key: 'age',
+            title: '入口ID',
+            key: 'entranceId',
             width: 100
           },
           {
-            title: 'Province',
-            key: 'province',
+            title: '品牌',
+            key: 'brand',
+            width: 70
+          },
+          {
+            title: '适用城市',
+            key: 'applicableCity',
+            width: 90
+          },
+          {
+            title: '订单来源',
+            key: 'source',
             width: 100
           },
           {
-            title: 'City',
-            key: 'city',
+            title: '签单类型',
+            key: 'written',
             width: 100
           },
           {
-            title: 'Address',
-            key: 'address',
-            width: 200
+            title: '流程配置ID',
+            key: 'procedureConfigId',
+            width: 100
           },
           {
-            title: 'Postcode',
-            key: 'zip',
+            title: '状态',
+            key: 'state',
+            width: 70
+          },
+          {
+            title: '创建人',
+            key: 'createdBy',
+            width: 80
+          },
+          {
+            title: '创建时间',
+            key: 'gmtCreated',
+            width: 100
+          },
+          {
+            title: '更新人',
+            key: 'modifyBy',
+            width: 100
+          },
+          {
+            title: '更新时间',
+            key: 'gmtModify',
             width: 100
           },
           {
@@ -476,40 +579,7 @@
             }
           }
         ],
-        procedureConfigData: [
-          {
-            name: 'John Brown',
-            age: 18,
-            address: 'New York No. 1 Lake Park',
-            province: 'America',
-            city: 'New York',
-            zip: 100000
-          },
-          {
-            name: 'Jim Green',
-            age: 24,
-            address: 'Washington, D.C. No. 1 Lake Park',
-            province: 'America',
-            city: 'Washington, D.C.',
-            zip: 100000
-          },
-          {
-            name: 'Joe Black',
-            age: 30,
-            address: 'Sydney No. 1 Lake Park',
-            province: 'Australian',
-            city: 'Sydney',
-            zip: 100000
-          },
-          {
-            name: 'Jon Snow',
-            age: 26,
-            address: 'Ottawa No. 2 Lake Park',
-            province: 'Canada',
-            city: 'Ottawa',
-            zip: 100000
-          }
-        ],
+        entranceData: [],
         //下面是form表单
         formItem: {
           input: '',
