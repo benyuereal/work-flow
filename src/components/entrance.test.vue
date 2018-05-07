@@ -83,7 +83,18 @@
       <Col span="24">&nbsp;</Col>
 
     </Row>
+
     <br>
+    <Row style="margin-top: 10px">
+      <Col span="24">
+        <Page :page-size="page.pageSize" :current="page.currentPage" :total="page.count"
+              @on-change="transferPage"
+              @on-page-size-change="handlePageSize" show-total></Page>
+        <!--<Page :current="2" :total="50"  show-elevator show-sizer></Page>-->
+
+      </Col>
+
+    </Row>
     <!--<Row style="height: 30px">-->
     <!--<Col span="2">&nbsp;</Col>-->
     <!--&lt;!&ndash;<Col span="24" style="height: 50px">&nbsp;</Col>&ndash;&gt;-->
@@ -131,9 +142,9 @@
         </FormItem>
         <FormItem label="签单类型">
           <CheckboxGroup v-model="saveEntranceForm.writtenTypeModal">
-            <Option v-for="item in saveEntranceForm.writtenType" :value="item.value" :key="item.value">{{ item.label
+            <Checkbox v-for="item in saveEntranceForm.writtenType" :value="item.value" :key="item.value">{{ item.label
               }}
-            </Option>
+            </Checkbox>
 
           </CheckboxGroup>
         </FormItem>
@@ -213,12 +224,26 @@
       //初始化数据
       this.initData();
       //初始 获取表格中 数据
-      // this.getEntranceData(1);
+      this.getEntranceData();
 
 
     },
 
     methods: {
+      //处理页码
+      handlePageSize() {
+        alert(11);
+      },
+      //页码转换,点击页码
+      transferPage(index) {
+        //
+        //index是要往第几页
+        //那么currentPage需要改变
+        this.page.currentPage = index;
+        //而且下一页和上一页都需要改变
+        // this.pageRequest.prevPage=
+        this.getEntranceData();
+      },
 
       //保存入口信息
       saveEntrance() {
@@ -241,9 +266,10 @@
         })
       },
       //初始化表格
-      getEntranceData(page) {
+      getEntranceData() {
 
-        //请求数据，有两个 一个是分页的请求对象，一个是搜索条件的对象
+        //请求数据，有两个 一个是分页的请求对象，一个是搜索条件的对象，由于wf不支持大对象
+        //直接就放一个里面了
         var request = {
           //请求的搜索条件
 
@@ -255,7 +281,9 @@
           writtenType: this.writtenTypeModal,
           //分页条件
           currentPage: this.page.currentPage,
-          pageSize: 10,
+          pageSize: this.page.pageSize,
+          count: this.page.count,
+
         };
 
         //获取入口表格数据
@@ -272,8 +300,20 @@
           data = response.data;
           //如果状态是0 就展示 否则展示默认的
           var code = data.code;
+          var count = data.count;
           var entranceData = data.entrances;
+          var page = this.page;
           this.entranceData = entranceData;
+          //页数赋值
+          page.count = count;
+          //判断当前的数据个数 以及当前页码大小
+          //如果当前数据的个数 比每页显示的个数还要小的话，就显示一页
+          //反之，就显示前十个
+          if (page.pageSize < entranceData.length) {
+            //如果数量小于当前页面，那么就在第一页将数据打上去
+            this.entranceData = entranceData.slice(0, page.pageSize);
+          }
+
         })
       },
 
@@ -309,7 +349,6 @@
             //展示签单选择
             this.saveEntranceForm.writtenType = playData.writtenType;
             //展示订单来源选择
-
 
 
           } else {
