@@ -36,7 +36,7 @@
           </Col>
 
           <Col span="5" id="select-column-state">
-            <p> 流程配置ID：</p><Input v-model="value" placeholder="Enter something..." clearable
+            <p> 流程配置ID：</p><Input v-model="procedureConfigId" placeholder="Enter something..." clearable
                                   style="width: 100px;height: 30px"></Input>
           </Col>
           <Col span="2">&nbsp;</Col>
@@ -56,7 +56,7 @@
         &nbsp;
       </Col>
       <Col span="2">
-        <Button type="primary" icon="ios-search" id="search" style="float: left" @click="getJSON">Search</Button>
+        <Button type="primary" icon="ios-search" id="search" style="float: left" @click="getTableData">Search</Button>
       </Col>
 
     </Row>
@@ -64,7 +64,7 @@
     <Row>
       <Col span="1">&nbsp;</Col>
       <Col span="6">
-        <Button type="primary" style="width: 90px" @click="showBind">add</Button>
+        <Button type="primary" style="width: 90px" @click="addEntrance">add</Button>
         <Button type="primary" style="width: 90px">batch add</Button>
       </Col>
       <Col span="">&nbsp;</Col>
@@ -103,62 +103,66 @@
 
     <!--弹出的表单域-->
     <Modal
+      @on-ok="saveEntrance"
       title="流程配置管理"
-      v-model="modal9"
+      v-model="addEntranceModal"
       :styles="{top: '20px'}">
-      <Form :model="formItem" :label-width="80" label-position="left">
+      <Form :model="saveEntranceForm" :label-width="80" label-position="left">
         <FormItem label="流程名称">
-          <Input v-model="formItem.input" placeholder="Enter something..." clearable></Input>
+          <Input v-model="saveEntranceForm.entranceName" placeholder="Enter something..." clearable></Input>
         </FormItem>
         <FormItem label="品牌">
-          <Select v-model="formItem.select">
-            <Option value="beijing">New York</Option>
-            <Option value="shanghai">London</Option>
-            <Option value="shenzhen">Sydney</Option>
+          <Select v-model="saveEntranceForm.brandTypeModal">
+            <Option v-for="item in saveEntranceForm.brandType" :value="item.value" :key="item.value"
+                    style="width: 100%">{{ item.label
+              }}
+            </Option>
+
           </Select>
         </FormItem>
         <FormItem label="适用城市">
-          <Select v-model="formItem.select">
-            <Option value="beijing">New York</Option>
-            <Option value="shanghai">London</Option>
-            <Option value="shenzhen">Sydney</Option>
+          <Select v-model="saveEntranceForm.addApplicableCityModal" filterable multiple>
+            <Option v-for="item in saveEntranceForm.addApplicableCity" :value="item.code" :key="item.code"
+                    style="width: 100%">
+              {{ item.name
+              }}
+            </Option>
           </Select>
         </FormItem>
         <FormItem label="签单类型">
-          <CheckboxGroup v-model="formItem.checkbox">
-            <Checkbox label="Eat"></Checkbox>
-            <Checkbox label="Sleep"></Checkbox>
-            <Checkbox label="Run"></Checkbox>
-            <Checkbox label="Movie"></Checkbox>
+          <CheckboxGroup v-model="saveEntranceForm.writtenTypeModal">
+            <Option v-for="item in saveEntranceForm.writtenType" :value="item.value" :key="item.value">{{ item.label
+              }}
+            </Option>
+
           </CheckboxGroup>
         </FormItem>
         <FormItem label="提单入口">
-          <CheckboxGroup v-model="formItem.checkbox">
-            <Checkbox label="Eat"></Checkbox>
-            <Checkbox label="Sleep"></Checkbox>
-            <Checkbox label="Run"></Checkbox>
-            <Checkbox label="Movie"></Checkbox>
+          <CheckboxGroup v-model="saveEntranceForm.billTypeModal">
+            <Checkbox v-for="item in saveEntranceForm.billType" :value="item.value" :key="item.value">{{ item.label }}
+            </Checkbox>
+
           </CheckboxGroup>
         </FormItem>
         <FormItem label="商品类型">
-          <Select v-model="formItem.select">
-            <Option value="beijing">New York</Option>
-            <Option value="shanghai">London</Option>
-            <Option value="shenzhen">Sydney</Option>
+          <Select v-model="saveEntranceForm.goodsTypeModal">
+            <Option v-for="item in saveEntranceForm.goodsType" :value="item.value" :key="item.value">{{ item.label }}
+            </Option>
+
           </Select>
         </FormItem>
         <FormItem label="商品线">
-          <Select v-model="formItem.select">
-            <Option value="beijing">New York</Option>
-            <Option value="shanghai">London</Option>
-            <Option value="shenzhen">Sydney</Option>
+          <Select v-model="saveEntranceForm.goodsLineModal">
+            <Option v-for="item in saveEntranceForm.goodsLine" :value="item.value" :key="item.value">{{ item.label }}
+            </Option>
+
           </Select>
         </FormItem>
         <FormItem label="商品单元">
-          <Select v-model="formItem.select">
-            <Option value="beijing">New York</Option>
-            <Option value="shanghai">London</Option>
-            <Option value="shenzhen">Sydney</Option>
+          <Select v-model="saveEntranceForm.goodsUnitModal">
+            <Option v-for="item in saveEntranceForm.goodsUnit" :value="item.value" :key="item.value">{{ item.label }}
+            </Option>
+
           </Select>
         </FormItem>
 
@@ -167,19 +171,19 @@
     </Modal>
     <Modal
       title="入口信息绑定流程"
-      v-model="modal10"
+      v-model="bindEntranceModal"
       :styles="{top: '150px'}">
-      <Form :model="formItem" :label-width="80" label-position="left">
+      <Form :model="bindEntranceModal" :label-width="80" label-position="left">
 
         <FormItem label="入口选择">
-          <Select v-model="formItem.select">
+          <Select v-model="bindEntranceModal.entrance">
             <Option value="beijing">New York</Option>
             <Option value="shanghai">London</Option>
             <Option value="shenzhen">Sydney</Option>
           </Select>
         </FormItem>
         <FormItem label="流程选择">
-          <Select v-model="formItem.select">
+          <Select v-model="bindEntranceModal.procedure">
             <Option value="beijing">New York</Option>
             <Option value="shanghai">London</Option>
             <Option value="shenzhen">Sydney</Option>
@@ -200,6 +204,7 @@
   import 'element-ui/lib/theme-chalk/index.css'
   import 'iview/dist/styles/iview.css'
   import config from '../../config/dev.config.js'
+  import city from '../../static/js/city'
 
   export default {
 
@@ -208,11 +213,33 @@
       //初始化数据
       this.initData();
       //初始 获取表格中 数据
-      this.getEntranceData(1);
+      // this.getEntranceData(1);
+
+
     },
 
     methods: {
 
+      //保存入口信息
+      saveEntrance() {
+        var request = this.saveEntranceForm;
+        alert();
+        //保存入库
+        this.$http.get(
+          "http://127.0.0.1:9501/entrance/save",
+          {
+            params: request,
+          },
+          {
+            emulateJSON: true,//是否是json
+          }
+        ).then(function (response) {
+          var data = response.data;
+          //如果状态是0 就展示 否则展示默认的
+          var code = data.code;
+          alert(code);
+        })
+      },
       //初始化表格
       getEntranceData(page) {
 
@@ -220,9 +247,14 @@
         var request = {
           //请求的搜索条件
 
-          brandType: 1,
+          //品牌
+          brandType: this.brandTypeModal,
+          //来源
+          sourceType: this.sourceTypeModal,
+          //签单类型
+          writtenType: this.writtenTypeModal,
           //分页条件
-          currentPage: page,
+          currentPage: this.page.currentPage,
           pageSize: 10,
         };
 
@@ -240,7 +272,8 @@
           data = response.data;
           //如果状态是0 就展示 否则展示默认的
           var code = data.code;
-          alert(JSON.stringify(data));
+          var entranceData = data.entrances;
+          this.entranceData = entranceData;
         })
       },
 
@@ -268,6 +301,16 @@
             this.writtenType = playData.writtenType;
             //展示订单来源选择
             this.sourceType = playData.sourceType;
+            //新增的
+
+            //表格内的
+            //展示品牌选择
+            this.saveEntranceForm.brandType = playData.brandType;
+            //展示签单选择
+            this.saveEntranceForm.writtenType = playData.writtenType;
+            //展示订单来源选择
+
+
 
           } else {
             //什么也不做
@@ -276,108 +319,63 @@
         })
       },
       //获取后台的json数据
-      getJSON() {
-        this.$http.get("http://127.0.0.1/9501/workflowManage/test", {
-          headers: this.headers
-        }).then(function (response) {
-          //
-          alert(response.bodyText);
-        })
+      getTableData() {
+        this.getEntranceData(1);
       },
 
       //弹出绑定界面
-      showBind() {
-        this.modal10 = true;
-      },
-
-      //增加某个值到弹出框
-      addNode() {
-        //对象赋值做好
-        var node = this.node;
-        node.age = 1;
-        node.address = '......';
-        node.name = 'ben.yue';
-        //最后的结果就是将这个对象放到顺序表里面去
-
-        //刷新表格
-        this.data1.push(node);
+      showBind(index) {
+        this.bindEntranceModal = true;
       },
 
 
-      //删除弹出框中的某一个值
-      removeNode(index) {
-        var data1 = this.data1;
-        //删除一个数组
-        data1.splice(index, 1);
+      //删除此条记录,传入的要删除的索引位置
+      remove(index) {
+        alert(index);
       },
+
 
       //点击显示选框
-      show(index) {
-        // this.$Modal.info({
-        //   title: 'User Info',
-        //   content: ``
-        // })
-        //清空两个checkbox以及文本
-        this.refreshText();
-        this.modal9 = true;
-      },
-      remove(index) {
-        this.data6.splice(index, 1);
-      },
-      refreshText() {
-        var checkBoxItem = this.formItem.checkbox;
-        var checkLogicItem = this.formItem.checkLogic;
-        for (let i = 0; i < 4; i++) {
-          checkBoxItem.pop();
+      addEntrance() {
+
+        if (this.addEntranceModal) {
+          this.addEntranceModal = false;
         }
-        /**
-         * 接着清除logic 勾选的逻辑
-         */
-        setTimeout(this.refreshLogic(checkLogicItem), 1);
-
+        this.addEntranceModal = true;
       },
 
-      realRefreshText() {
-        this.guize = '';
-      },
-      //清除逻辑勾选
-      refreshLogic(checkLogicItem) {
 
-        //循环把顺序表中的内容抛出
-        for (let i = 0; i < 4; i++) {
-          checkLogicItem.pop();
-        }
-
-
-        /**
-         * 最后才是清除文本
-         */
-        setTimeout(this.realRefreshText(), 1);
-
-      },
-      checkCheck(type) {
-
-        var checkBoxItem = JSON.parse(JSON.stringify(this.formItem.checkbox));
-        var checkLogicItem = JSON.parse(JSON.stringify(this.formItem.checkLogic));
-        var checkBox = 1;
-        var checkLogic = 2;
-        //如果是敲击校验
-        if (type == checkBox) {
-          this.guize += checkBoxItem.pop();
-        } else {
-
-          this.guize += checkLogicItem.pop();
-        }
-        this.guize = this.guize.replace(",", "&nbsp;");
-        this.guize += ' ';
-        // alert(this.guize)
-
-
-      }
     },
     name: 'app',
     data() {
       return {
+        //绑定按钮点击后出现的form
+        bindForm: {
+          //入口
+          entrance: [],
+          //流程
+          procedure: [],
+        },
+
+
+        //流程配置id
+        procedureConfigId: '',
+        //初始化的时候是false，表示该modal是隐藏的
+        addEntranceModal: false,
+        //cityAfter
+        cityAfter: [],
+        //page 分页对象
+        page: {
+          prevPage: 0,
+          nextPage: 0,
+          //页面显示的数据个数
+          pageSize: 5,
+          count: 0,
+          //初始化当前页是1
+          currentPage: 1,
+
+        },
+
 
         //品牌
         brandType: [],
@@ -388,102 +386,9 @@
         //订单来源类型
         sourceType: [],
         sourceTypeModal: '',
-        node: {//这个对象用来承载用户点击对号生成的对象
-          name: '',
-          age: '',
-          address: ''
-        },
-        modal10: false,//控制绑定
-        procedureModal: false,
-        guize: '',
-        input2: '',
-        input21: '',
-        input22: '',
-        input23: '',
-        cityList: [
-          {
-            value: 'New York',
-            label: 'New York'
-          },
-          {
-            value: 'London',
-            label: 'London'
-          },
-          {
-            value: 'Sydney',
-            label: 'Sydney'
-          },
-          {
-            value: 'Ottawa',
-            label: 'Ottawa'
-          },
-          {
-            value: 'Paris',
-            label: 'Paris'
-          },
-          {
-            value: 'Canberra',
-            label: 'Canberra'
-          }
-        ],
-        columnsProcedure: [
-          {
-            title: '序号',
-            key: 'name',
-            width: 142.33,
 
-          },
-          {
-            title: '节点',
-            key: 'age',
-            width: 101.66,
+        bindEntranceModal: false,//控制绑定
 
-          },
-          {
-            title: '规则',
-            key: 'address'
-          },
-          {
-            title: '操作',
-            key: 'action',
-            fixed: 'right',
-            width: 70,
-            render: (h, params) => {
-              return h('div', [
-                h('Button', {
-                  props: {
-                    type: '',
-                    size: 'small',
-                    icon: 'close'
-                  },
-                  on: {
-                    click: () => {
-                      this.removeNode(params.index)
-                    }
-                  }
-
-                }),
-
-              ]);
-            }
-          }
-        ],
-        data1: [
-          {
-            name: 'John Brown',
-            age: 18,
-            address: 'New York No. 1 Lake Park',
-            date: '2016-10-03'
-          },
-          {
-            name: 'Jim Green',
-            age: 24,
-            address: 'London No. 1 Lake Park',
-            date: '2016-10-01'
-          },
-
-
-        ],
         entranceColumn: [
           {
             title: '序号',
@@ -499,7 +404,9 @@
           {
             title: '品牌',
             key: 'brand',
-            width: 70
+            width: 80,
+            fixed: 'center'
+
           },
           {
             title: '适用城市',
@@ -560,7 +467,7 @@
                   },
                   on: {
                     click: () => {
-                      this.show(params.index)
+                      this.showBind(params.index)
                     }
                   }
                 }, 'View'),
@@ -581,17 +488,47 @@
         ],
         entranceData: [],
         //下面是form表单
-        formItem: {
-          input: '',
-          select: '',
-          radio: 'male',
-          checkbox: [],
-          checkLogic: [],
-          switch: true,
-          date: '',
-          time: '',
-          slider: [20, 50],
-          textarea: ''
+        saveEntranceForm: {
+          //入口名称
+          entranceName: '',
+          //品牌
+          brandType: this.brandType,
+          //签单类型
+          writtenType: this.writtenType,
+          //提单入口
+          billType: [
+            {
+              label: "全部",
+              value: 1,
+            },
+            {
+              label: "在线提单",
+              value: 2,
+            },
+            {
+              label: "BC提单",
+              value: 3,
+            },
+          ],
+          billTypeModal: '',
+          goodsType: [],
+          //商品单元
+          goodsUnit: [],
+          //商品线
+          goodsLine: [],
+          goodsTypeModal: '',
+          //商品单元
+          goodsUnitModal: '',
+          //商品线
+          goodsLineModal: '',
+          //新增适用城市
+          addApplicableCity: city.city,
+          //新增城市绑定
+          addApplicableCityModal: [],
+          //品牌
+          brandTypeModal: '',
+          //签单类型
+          writtenTypeModal: '',
         }
 
       }
