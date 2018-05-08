@@ -5,7 +5,7 @@ import App from './App'
 import router from './router'
 import VueResource from 'vue-resource'
 import ElementUI from 'element-ui';
-import  'element-ui/lib/theme-chalk/index.css'
+import 'element-ui/lib/theme-chalk/index.css'
 import '../static/css/common.css'
 import iView from 'iview';
 import 'iview/dist/styles/iview.css';
@@ -21,6 +21,6 @@ Vue.use(VueResource);
 new Vue({
   el: '#app',
   router,
-  components: { App },
+  components: {App},
   template: '<App/>'
 })

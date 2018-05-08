@@ -5,7 +5,8 @@ var dev_config = {
     // 'X-Requested-With': 'XMLHttpRequest',
     // 'Content-Type': 'application/x-www-form-urlencoded',
     'Access-Control-Allow-Origin': '*',
-  }
+  },
+  SUCCESS:0,
 
 }
 export default dev_config

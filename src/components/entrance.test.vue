@@ -157,14 +157,14 @@
           </CheckboxGroup>
         </FormItem>
         <FormItem label="商品类型">
-          <Select v-model="saveEntranceForm.goodsType" @on-change="findGoodsLine">
+          <Select v-model="saveEntranceForm.goodsType" @on-change="findGoodsLine(1)">
             <Option v-for="item in goodsType" :value="item.value" :key="item.value">{{ item.label }}
             </Option>
 
           </Select>
         </FormItem>
         <FormItem label="商品线">
-          <Select v-model="saveEntranceForm.goodsLine">
+          <Select v-model="saveEntranceForm.goodsLine" @on-change="findGoodsLine(2)">
             <Option v-for="item in goodsLine" :value="item.value" :key="item.value">{{ item.label }}
             </Option>
 
@@ -218,6 +218,7 @@
   import config from '../../config/dev.config.js'
   import city from '../../static/js/city'
 
+
   export default {
 
 
@@ -226,15 +227,28 @@
       this.initData();
       //初始 获取表格中 数据
       this.getEntranceData();
-      //初始化商品类型 刚开始是0
-      this.getGoodsType(0);
+      //初始化商品类型 刚开始是0,类型是0
+      this.getGoodsType(0, 0);
 
     },
 
     methods: {
       //寻找
-      findGoodsLine() {
-        alert(this.saveEntrance().writtenType);
+      findGoodsLine(type) {
+        var code = 0;
+        //根据类型来取发送请求的数据
+        if (type === 1) {
+          //如果类型是1，就表示是查看商品线，需要拿到选中的商品类型
+          code = this.saveEntranceForm.goodsType;
+          //然后调用方法，获取下级类目
+          this.getGoodsType(code, type);
+
+          //如果类型是2，就表示查看商品单元，需要拿到选中的商品线
+        } else if (type === 2) {
+          code = this.saveEntranceForm.goodsLine;
+          //然后调用方法，获取下级类目
+          this.getGoodsType(code, type);
+        }
       },
       //处理页码
       handlePageSize() {
@@ -287,6 +301,8 @@
           sourceType: this.sourceTypeModal,
           //签单类型
           writtenType: this.writtenTypeModal,
+          //流程配置id
+          procedureConfigId: this.procedureConfigId,
           //分页条件
           currentPage: this.page.currentPage,
           pageSize: this.page.pageSize,
@@ -326,7 +342,7 @@
       },
 
       //初始化 获取商品类型等数据
-      getGoodsType(code) {
+      getGoodsType(code, type) {
         var request = {
             code: code,//初始的时候传的是0
           }
@@ -341,7 +357,29 @@
           }
         ).then(function (response) {
           var data = response.data;
-          alert(JSON.stringify(data));
+          var code = data.code;
+          //code===0的时候是成功
+          if (code === config.SUCCESS) {
+
+            var results = data.data;
+            //返回的结果封装在data里面
+            //如果是类型1,就是商品类型;2商品线;3商品单元
+            if (type === 0) {
+              //商品类型
+              this.goodsType = results;
+
+              //商品线
+            } else if (type === 1) {
+              this.goodsLine = results;
+
+              //商品单元
+            } else {
+              this.goodsUnit = results;
+
+            }
+          } else {
+            //其他情况就是失败
+          }
         });
       },
 
@@ -570,46 +608,11 @@
         },
         //新增适用城市
         addApplicableCity: city.city,
-        goodsType: [{
-          label: "全部",
-          value: 1,
-        },
-          {
-            label: "在线提单",
-            value: 2,
-          },
-          {
-            label: "BC提单",
-            value: 3,
-          },],
+        goodsType: [],
         //商品单元
-        goodsUnit: [
-          {
-            label: "全部",
-            value: 1,
-          },
-          {
-            label: "在线提单",
-            value: 2,
-          },
-          {
-            label: "BC提单",
-            value: 3,
-          },],
+        goodsUnit: [],
         //商品线
-        goodsLine: [
-          {
-            label: "全部",
-            value: 1,
-          },
-          {
-            label: "在线提单",
-            value: 2,
-          },
-          {
-            label: "BC提单",
-            value: 3,
-          },],
+        goodsLine: [],
         //提单入口
         billType: [
           {
