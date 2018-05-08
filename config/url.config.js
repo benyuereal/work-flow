@@ -1,5 +1,5 @@
-var constantConfig = {
+var url = {
   //0代表成功
   success: 0,
 }
-export default constantConfig;
+export default url;

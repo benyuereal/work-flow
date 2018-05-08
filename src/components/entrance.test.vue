@@ -296,11 +296,11 @@
           //请求的搜索条件
 
           //品牌
-          brandType: this.brandTypeModal,
+          brand: this.brandTypeModal,
           //来源
-          sourceType: this.sourceTypeModal,
+          source: this.sourceTypeModal,
           //签单类型
-          writtenType: this.writtenTypeModal,
+          written: this.writtenTypeModal,
           //流程配置id
           procedureConfigId: this.procedureConfigId,
           //分页条件
@@ -321,22 +321,46 @@
             emulateJSON: true,//是否是json
           }
         ).then(function (response) {
-          data = response.data;
-          //如果状态是0 就展示 否则展示默认的
-          var code = data.code;
-          var count = data.count;
-          var entranceData = data.entrances;
-          var page = this.page;
-          this.entranceData = entranceData;
-          //页数赋值
-          page.count = count;
-          //判断当前的数据个数 以及当前页码大小
-          //如果当前数据的个数 比每页显示的个数还要小的话，就显示一页
-          //反之，就显示前十个
-          if (page.pageSize < entranceData.length) {
-            //如果数量小于当前页面，那么就在第一页将数据打上去
-            this.entranceData = entranceData.slice(0, page.pageSize);
+
+
+          var result = response.data;
+          var data = result.data;
+          var code = result.code;
+          var message = result.message;
+
+          //如果是成功的返回,就会有关于分页的处理
+          if (code === config.SUCCESS) {
+            //如果没有任何信息
+            var type = data.type;
+            alert(JSON.stringify(data));
+            //如果是有提示，先打印提示
+            if (type === config.INVALID) {
+
+              this.$Message.warning(message);
+            } else {
+              //如果状态是0 就展示 否则展示默认的
+              var count = data.count;
+              var entranceData = data.entrances;
+              var page = this.page;
+              this.entranceData = entranceData;
+              //页数赋值
+              page.count = count;
+              //判断当前的数据个数 以及当前页码大小
+              //如果当前数据的个数 比每页显示的个数还要小的话，就显示一页
+              //反之，就显示前十个
+              if (page.pageSize < entranceData.length) {
+                //如果数量小于当前页面，那么就在第一页将数据打上去
+                this.entranceData = entranceData.slice(0, page.pageSize);
+              }
+            }
+
+          } else {
+            //否则弹出警告，并且在警告上打印出后台返回的信息
+            this.$Message.warning(message);
+
+
           }
+
 
         })
       },

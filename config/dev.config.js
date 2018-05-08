@@ -6,7 +6,9 @@ var dev_config = {
     // 'Content-Type': 'application/x-www-form-urlencoded',
     'Access-Control-Allow-Origin': '*',
   },
-  SUCCESS:0,
+  SUCCESS: 0,
+  VALID: 1,
+  INVALID: 2
 
 }
 export default dev_config

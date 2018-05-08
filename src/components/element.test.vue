@@ -372,18 +372,41 @@
           {
             emulateJSON: true//是否是json
           }).then(function (response) {
-          //json
-          var data = response.data;
-          var count = data.count;
-          var tableData = data.procedures;
-          pageRequest.count = count;
-          this.procedureConfigData = tableData;
-          //判断当前的数据个数 以及当前页码大小
-          //如果当前数据的个数 比每页显示的个数还要小的话，就显示一页
-          //反之，就显示前十个
-          if (pageRequest.pageSize < tableData.length) {
-            //如果数量小于当前页面，那么就在第一页将数据打上去
-            this.procedureConfigData = tableData.slice(0, pageRequest.pageSize);
+          //首先根据返回
+
+          var result = response.data;
+          var data = result.data;
+          var code = result.code;
+          var message = result.message;
+
+          //如果是成功的返回,就会有关于分页的处理
+          if (code === config.SUCCESS) {
+            //如果没有任何信息
+            var type = data.type;
+            //如果是有提示，先打印提示
+            if (type === config.INVALID) {
+
+              this.$Message.warning(message);
+            } else {
+              //否则 就讲数据打印到页面上
+              var count = data.count;
+              var tableData = data.procedures;
+              pageRequest.count = count;
+              this.procedureConfigData = tableData;
+              //判断当前的数据个数 以及当前页码大小
+              //如果当前数据的个数 比每页显示的个数还要小的话，就显示一页
+              //反之，就显示前十个
+              // if (pageRequest.pageSize < tableData.length) {
+              //   //如果数量小于当前页面，那么就在第一页将数据打上去
+              //   this.procedureConfigData = tableData.slice(0, pageRequest.pageSize);
+              //
+              // }
+            }
+
+          } else {
+            //否则弹出警告，并且在警告上打印出后台返回的信息
+            this.$Message.warning(message);
+
 
           }
 
