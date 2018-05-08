@@ -123,8 +123,8 @@
           <Input v-model="saveEntranceForm.entranceName" placeholder="Enter something..." clearable></Input>
         </FormItem>
         <FormItem label="品牌">
-          <Select v-model="saveEntranceForm.brandTypeModal">
-            <Option v-for="item in saveEntranceForm.brandType" :value="item.value" :key="item.value"
+          <Select v-model="saveEntranceForm.brand">
+            <Option v-for="item in brandType" :value="item.value" :key="item.value"
                     style="width: 100%">{{ item.label
               }}
             </Option>
@@ -132,8 +132,8 @@
           </Select>
         </FormItem>
         <FormItem label="适用城市">
-          <Select v-model="saveEntranceForm.addApplicableCityModal" filterable multiple>
-            <Option v-for="item in saveEntranceForm.addApplicableCity" :value="item.code" :key="item.code"
+          <Select v-model="saveEntranceForm.applicableCity" filterable multiple>
+            <Option v-for="item in addApplicableCity" :value="item.code" :key="item.code"
                     style="width: 100%">
               {{ item.name
               }}
@@ -141,37 +141,38 @@
           </Select>
         </FormItem>
         <FormItem label="签单类型">
-          <CheckboxGroup v-model="saveEntranceForm.writtenTypeModal">
-            <Checkbox v-for="item in saveEntranceForm.writtenType" :value="item.value" :key="item.value">{{ item.label
+          <CheckboxGroup v-model="saveEntranceForm.written">
+            <Checkbox v-for="item in writtenType" :label="item.value">{{ item.label
               }}
             </Checkbox>
 
           </CheckboxGroup>
         </FormItem>
         <FormItem label="提单入口">
-          <CheckboxGroup v-model="saveEntranceForm.billTypeModal">
-            <Checkbox v-for="item in saveEntranceForm.billType" :value="item.value" :key="item.value">{{ item.label }}
+          <CheckboxGroup v-model="saveEntranceForm.bill">
+            <Checkbox v-for="item in billType" :label="item.value">{{ item.label
+              }}
             </Checkbox>
 
           </CheckboxGroup>
         </FormItem>
         <FormItem label="商品类型">
-          <Select v-model="saveEntranceForm.goodsTypeModal">
-            <Option v-for="item in saveEntranceForm.goodsType" :value="item.value" :key="item.value">{{ item.label }}
+          <Select v-model="saveEntranceForm.goodsType" @on-change="findGoodsLine">
+            <Option v-for="item in goodsType" :value="item.value" :key="item.value">{{ item.label }}
             </Option>
 
           </Select>
         </FormItem>
         <FormItem label="商品线">
-          <Select v-model="saveEntranceForm.goodsLineModal">
-            <Option v-for="item in saveEntranceForm.goodsLine" :value="item.value" :key="item.value">{{ item.label }}
+          <Select v-model="saveEntranceForm.goodsLine">
+            <Option v-for="item in goodsLine" :value="item.value" :key="item.value">{{ item.label }}
             </Option>
 
           </Select>
         </FormItem>
         <FormItem label="商品单元">
-          <Select v-model="saveEntranceForm.goodsUnitModal">
-            <Option v-for="item in saveEntranceForm.goodsUnit" :value="item.value" :key="item.value">{{ item.label }}
+          <Select v-model="saveEntranceForm.goodsUnit">
+            <Option v-for="item in goodsUnit" :value="item.value" :key="item.value">{{ item.label }}
             </Option>
 
           </Select>
@@ -225,11 +226,16 @@
       this.initData();
       //初始 获取表格中 数据
       this.getEntranceData();
-
+      //初始化商品类型 刚开始是0
+      this.getGoodsType(0);
 
     },
 
     methods: {
+      //寻找
+      findGoodsLine() {
+        alert(this.saveEntrance().writtenType);
+      },
       //处理页码
       handlePageSize() {
         alert(11);
@@ -248,12 +254,14 @@
       //保存入口信息
       saveEntrance() {
         var request = this.saveEntranceForm;
-        alert();
+        //去除""
+        alert(JSON.stringify(request));
+        var reqStr = JSON.stringify(request);
         //保存入库
-        this.$http.get(
+        this.$http.post(
           "http://127.0.0.1:9501/entrance/save",
           {
-            params: request,
+            request: reqStr,
           },
           {
             emulateJSON: true,//是否是json
@@ -317,6 +325,26 @@
         })
       },
 
+      //初始化 获取商品类型等数据
+      getGoodsType(code) {
+        var request = {
+            code: code,//初始的时候传的是0
+          }
+        ;
+        this.$http.get(
+          "http://127.0.0.1:9501/init/getProduct",
+          {
+            params: request
+          },
+          {
+            emulateJSON: true,//是否是json
+          }
+        ).then(function (response) {
+          var data = response.data;
+          alert(JSON.stringify(data));
+        });
+      },
+
       //获取初始化数据
       initData() {
         //初始化数据
@@ -342,13 +370,6 @@
             //展示订单来源选择
             this.sourceType = playData.sourceType;
             //新增的
-
-            //表格内的
-            //展示品牌选择
-            this.saveEntranceForm.brandType = playData.brandType;
-            //展示签单选择
-            this.saveEntranceForm.writtenType = playData.writtenType;
-            //展示订单来源选择
 
 
           } else {
@@ -530,45 +551,80 @@
         saveEntranceForm: {
           //入口名称
           entranceName: '',
-          //品牌
-          brandType: this.brandType,
-          //签单类型
-          writtenType: this.writtenType,
-          //提单入口
-          billType: [
-            {
-              label: "全部",
-              value: 1,
-            },
-            {
-              label: "在线提单",
-              value: 2,
-            },
-            {
-              label: "BC提单",
-              value: 3,
-            },
-          ],
-          billTypeModal: '',
-          goodsType: [],
+
+          //提单类型
+          bill: this.billType,
+
+          goodsType: '',
           //商品单元
-          goodsUnit: [],
+          goodsUnit: '',
           //商品线
-          goodsLine: [],
-          goodsTypeModal: '',
-          //商品单元
-          goodsUnitModal: '',
-          //商品线
-          goodsLineModal: '',
-          //新增适用城市
-          addApplicableCity: city.city,
+          goodsLine: '',
+
           //新增城市绑定
-          addApplicableCityModal: [],
+          applicableCity: [],
           //品牌
-          brandTypeModal: '',
+          brand: '',
           //签单类型
-          writtenTypeModal: '',
-        }
+          written: this.writtenType,
+        },
+        //新增适用城市
+        addApplicableCity: city.city,
+        goodsType: [{
+          label: "全部",
+          value: 1,
+        },
+          {
+            label: "在线提单",
+            value: 2,
+          },
+          {
+            label: "BC提单",
+            value: 3,
+          },],
+        //商品单元
+        goodsUnit: [
+          {
+            label: "全部",
+            value: 1,
+          },
+          {
+            label: "在线提单",
+            value: 2,
+          },
+          {
+            label: "BC提单",
+            value: 3,
+          },],
+        //商品线
+        goodsLine: [
+          {
+            label: "全部",
+            value: 1,
+          },
+          {
+            label: "在线提单",
+            value: 2,
+          },
+          {
+            label: "BC提单",
+            value: 3,
+          },],
+        //提单入口
+        billType: [
+          {
+            label: "全部",
+            value: 1,
+          },
+          {
+            label: "在线提单",
+            value: 2,
+          },
+          {
+            label: "BC提单",
+            value: 3,
+          },
+        ],
 
       }
 
