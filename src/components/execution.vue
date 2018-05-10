@@ -315,8 +315,6 @@
         },
         modal10:false,//控制绑定
         procedureModal: false,
-        guize: '',
-        input2: '',
         input21: '',
         input22: '',
         input23: '',

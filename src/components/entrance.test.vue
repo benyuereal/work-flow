@@ -218,7 +218,7 @@
         </FormItem>
         <FormItem label="流程选择">
           <Select v-model="bindForm.procedure" filterable>
-            <Option v-for="item in proceduresByEntranceId" :value="item.procedureConfigId" :key="item.procedureName"
+            <Option v-for="item in proceduresByEntrance" :value="item.procedureConfigId"
                     style="width: 100%">
               {{ item.procedureName
               }}
@@ -258,16 +258,15 @@
     methods: {
 
       //根据入口名字获取procedure
-      getProcedureByEntranceId(){
-        var entranceName=this.bindForm.entrance;
-        var url='http://localhost:9501/procedure/test';
+      getProcedureByEntranceId() {
+        var entranceName = this.bindForm.entrance;
+        var url = 'http://localhost:9501/procedure/getProcedureByEntrance';
         var pageRequest = this.pageRequest;
         var params = {
-          entranceId:this.bindForm.entrance,
-
+          entranceId: this.bindForm.entrance,
         };
         this.$http.get(url
-         ,//请求地址，有条件查询流程配置数据
+          ,//请求地址，有条件查询流程配置数据
           {
             params: params//参数
           },
@@ -291,9 +290,8 @@
               this.$Message.warning(message);
             } else {
               //否则 就讲数据打印到页面上
-              var count = data.count;
-              var tableData = data.procedures;
-              this.proceduresByEntranceId = tableData;
+
+              this.proceduresByEntrance = data.procedures;
             }
 
           } else {
@@ -590,6 +588,7 @@
         //然后获取流程
         this.getProcedureByEntranceId();
         this.bindEntranceModal = true;
+        //展示数据
       },
 
 
@@ -684,7 +683,7 @@
     data() {
       return {
         //根据entranceId获得的流程
-        proceduresByEntranceId:[],
+        proceduresByEntrance: [],
         centerDialogVisible: false,
         adding: false,
         //表单是否被编辑中
