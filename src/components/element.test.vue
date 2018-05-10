@@ -116,7 +116,7 @@
       title="流程配置管理"
       v-model="procedureModal"
       :styles="{top: '20px'}">
-      <Form ref="formItem" :model="formItem" :label-width="80" label-position="left" :rules="ruleValidate">
+      <Form ref="formItem" :model="formItem"  label-position="left" :rules="ruleValidate">
         <FormItem label="流程名称" prop="procedureName">
           <Input v-model="formItem.procedureName" placeholder="Enter something..." clearable
                  :disabled="disableFlag"></Input>
@@ -165,20 +165,26 @@
             <!--<Icon type="refresh" style="margin-top: 40px;size: 90px"></Icon>-->
           </Col>
           <Col span="6" style="border-bottom: 1px solid gainsboro;border-right: 1px solid gainsboro;height: 100%">
+            <form-item style="height: 120px" prop="checkArraySelected">
             <CheckboxGroup v-model="formItem.checkArraySelected"
-                           style="text-align: left; margin-left: 20px;margin-top: 20px"
+                           style="text-align: left; margin-left:0px;margin-top: 10px;width: 150px"
                            prop="checkArraySelected" @on-change="changeCheckOrLogic">
-              <Checkbox v-for="item in checkArray" :label="item" :disabled="disableFlag">{{ item }}</Checkbox>
+              <Checkbox v-for="item in checkArray" :label="item" :disabled="disableFlag" style="width: 100px;float: left">{{ item }}</Checkbox>
             </CheckboxGroup>
+            </form-item>
           </Col>
           <Col span="5" style="border-bottom: 1px solid gainsboro;border-right: 1px solid gainsboro;height: 100%">
+            <form-item style="height: 120px" prop="logicArraySelected" >
+
             <CheckboxGroup v-model="formItem.logicArraySelected"
-                           style="text-align: left;margin-left: 30px;margin-top: 20px"
+                           style="text-align: left;margin-left: 30px;margin-top: 10px"
                            @on-change="changeCheckOrLogic" prop="logicArraySelected" disabled="disableFlag">
-              <Checkbox v-for="item in logicArray" :label="item" :disabled="disableFlag">{{ item }}</Checkbox>
+              <Checkbox v-for="item in logicArray" :label="item" :disabled="disableFlag" style="">{{ item }}</Checkbox>
 
 
             </CheckboxGroup>
+            </form-item>
+
           </Col>
           <Col span="12" id="resultDisplayArea"
                style="border-bottom: 1px solid gainsboro;height: 100%;text-align: center;
@@ -211,6 +217,14 @@
 
         </Row>
       </Form>
+      <div slot="footer">
+        <Button type="primary" size="small" style="width: 60px" @click="centerDialogVisible = false">取消</Button>
+
+        <Button type="primary" size="small" style="width: 60px" :loading="procedureLoading"
+                @click="validateProcedureData">确定
+        </Button>
+        <!--<Button type="error" size="large" long :loading="" @click="del">Delete</Button>-->
+      </div>
     </Modal>
   </div>
 </template>
@@ -238,6 +252,36 @@
     },
 
     methods: {
+      validateProcedureData() {
+        this.procedureLoading = true;
+
+        //点击增加验证
+        setTimeout(() => {
+          this.$refs.formItem.validate((valid) => {
+            if (valid) {
+              //校验通过 首先保存数据
+              this.saveProcedures();
+              //验证返回状态
+              var status = this.validateStatus;
+              if (status) {
+                //关闭表单
+                this.procedureModal = false;
+                this.$Message.success('Success!');
+              } else {
+                this.$Message.warning(this.warningMessage);
+              }
+
+            } else {
+              //关闭下面的按钮
+              this.procedureLoading = false;
+              this.$Message.error('缺少信息!');
+            }
+          });
+        }, 1000);
+
+
+      },
+
       //初始化最新数组大小
       initLatestArray() {
         //初始化的时候,需要初始化上次的大小
@@ -291,13 +335,13 @@
 
 
       },
-      displayTalbeData(entity) {
+      displayTablebeData(entity) {
         var procedureDetails = this.procedureDetails;
         procedureDetails.push({
           id: entity.id,
           procedureConfigId: entity.procedureConfigId,
-          nodeType: entity.modelType,
-          procedureRules: entity.procedureExecution
+          modelType: entity.modelType,
+          procedureExecution: entity.procedureExecution
         });
       },
       //根据流程配置ID和节点来查询
@@ -316,7 +360,7 @@
         //然后分析逻辑多选和
         this.getRulesText(entity.procedureExecution);
         //展示表格
-        this.displayTalbeData(entity);
+        this.displayTablebeData(entity);
 
       },
       //确定校验,检验form表单里面的数据
@@ -351,29 +395,11 @@
       },
       //校验通过之后 要发送后台保存的请求
       saveProcedures() {
-        //
-        var request = [
-          {
-            id: 19,
-            procedureConfigId: 18,
-            nodeType: '1',
-            procedureRules: 'fuck-------this'
-          },
-          {
-            id: 20,
-            procedureConfigId: 22,
-            nodeType: '2',
-            procedureRules: 'fuck-------that'
-          },
 
-
-        ];
+        var request = this.procedureDetails;
         var params = {
             request: JSON.stringify(request),
-          }
-        ;
-
-        alert(request);
+          };
         this.$http.get(
           "http://localhost:9501/procedure/save",//请求地址
           {
@@ -391,7 +417,6 @@
             this.responseStatus = false;
           }
         }, function (res) {
-          alert(res.status);
           this.responseStatus = false;
         });
       },
@@ -482,8 +507,8 @@
         //刷新表格
         this.procedureDetails.push({
           id: 0,
-          nodeType: this.currentNodeName,
-          procedureRules: this.ruleText,
+          modelType: this.currentNodeName,
+          procedureExecution: this.ruleText,
         });
       },
       getNodeType(nodeType) {
@@ -506,10 +531,6 @@
 
       //点击显示选框
       showProcedure(index, viewFlag) {
-        // this.$Modal.info({
-        //   title: 'User Info',
-        //   content: ``
-        // })
         this.refreshText();
         this.procedureModal = true;
         this.viewProcedureDetail(index, viewFlag);
@@ -621,6 +642,9 @@
     name: 'app',
     data() {
       return {
+        procedureLoading: false,
+
+        centerDialogVisible: false,
         currentNodeName: '',
         //新增流程配置的标志位
         addingProcedureFlag: false,
@@ -653,11 +677,6 @@
 
           }
         ,
-
-        //查询列表的字段
-        // procedureTable:[
-        //   'id',''
-        // ],
         //流程配置ID
         procedureConfigId: "",
         //流程名称
@@ -711,13 +730,13 @@
             },
             {
               title: '节点',
-              key: 'nodeType',
+              key: 'modelType',
               width: 101.66,
 
             },
             {
               title: '规则',
-              key: 'procedureRules'
+              key: 'procedureExecution'
             },
             {
               title: '操作',
@@ -728,13 +747,11 @@
                 return h('div', [
                   h('Button', {
                     props: {
-                      // type: '',
                       size: 'small',
                       type: 'text',
-                      disabled: 'disableFlag',
-                      ref: 'fuckButton',
-                    },
+                      'disabled':this.disableFlag,
 
+                    },
                     on: {
                       click: () => {
                         this.removeNode(params.index)
@@ -744,10 +761,12 @@
                   }, 'Rem'),
                   h('Button', {
                     props: {
-                      // type: '',
                       size: 'small',
                       type: 'text',
-                      disabled: 'disableFlag'
+                      /**
+                       * 这个位置真是难死了  @TODO 这个位置需要记笔记
+                       * */
+                      'disabled':this.disableFlag,
                     },
                     on: {
                       click: () => {
@@ -872,13 +891,13 @@
 
           checkArraySelected:
             [
-              {required: true, type: 'array', min: 1, message: '请选择至少一个模板名称', trigger: 'change'},
-              {type: 'array', max: 4, message: 'Choose two hobbies at best', trigger: 'change'}
+              {required: true, message: '请填写流程名称', trigger: 'blur'}
+
             ],
           logicArraySelected:
             [
-              {required: true, type: 'array', min: 1, message: '请选择至少一个模板关系', trigger: 'change'},
-              {type: 'array', max: 4, message: '请选择至少一种逻辑', trigger: 'change'}
+              {required: true, message: '请填写流程名称', trigger: 'blur'}
+
             ],
 
         }

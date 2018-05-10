@@ -98,31 +98,14 @@
       </Col>
 
     </Row>
-    <!--<Row style="height: 30px">-->
-    <!--<Col span="2">&nbsp;</Col>-->
-    <!--&lt;!&ndash;<Col span="24" style="height: 50px">&nbsp;</Col>&ndash;&gt;-->
-    <!--<Col span="10"><p>流程配置管理</p></Col>-->
-    <!--<Col span="7">&nbsp;</Col>-->
+
 
     <!--</Row>-->
     <br>
 
     <!--下面是表单域-->
     <Row style="height: 500px">
-      <Col span="2">
-        <!--<el-button type="text" @click="centerDialogVisible = true">点击打开 Dialog</el-button>-->
-
-        <el-dialog
-          title="提示"
-          :visible.sync="centerDialogVisible"
-          width="60%"
-          center>
-          <span>需要注意的是内容是默认不居中的</span>
-          <span slot="footer" class="dialog-footer">
-    <el-button @click="centerDialogVisible = false">取 消</el-button>
-    <el-button type="primary" @click="centerDialogVisible = false">确 定</el-button>
-  </span>
-        </el-dialog>
+      <Col span="2">&nbsp;
       </Col>
       <Col span="10">
       </Col>
@@ -134,7 +117,7 @@
       title="入口信息配置"
       v-model="addEntranceModal"
       :styles="{top: '20px'}">
-      <Form ref="saveEntranceForm" :model="saveEntranceForm" :label-width="80" label-position="left"
+      <Form ref="saveEntranceForm" :model="saveEntranceForm" :label-width="0" label-position="left"
             :rules="validateEntranceForm">
         <FormItem label="入口名称" prop="entranceName">
           <Input v-model="saveEntranceForm.entranceName" placeholder="Enter something..."></Input>
@@ -210,7 +193,7 @@
       title="入口信息绑定流程"
       v-model="bindEntranceModal"
       :styles="{top: '150px'}">
-      <Form :model="bindForm" :label-width="80" label-position="left">
+      <Form :model="bindForm"  label-position="left">
 
         <FormItem label="入口选择">
           <Input v-model="bindForm.entrance" disabled placeholder="Enter something..."></Input>
@@ -228,6 +211,14 @@
 
 
       </Form>
+      <div slot="footer">
+        <Button type="primary" size="small" style="width: 60px" @click="bindEntranceModal = false">取消</Button>
+
+        <Button type="primary" size="small" style="width: 60px" :loading="entranceLoading"
+                @click="validateEntranceData">确定
+        </Button>
+        <!--<Button type="error" size="large" long :loading="" @click="del">Delete</Button>-->
+      </div>
     </Modal>
   </div>
 </template>
@@ -317,6 +308,20 @@
         this.saveEntranceForm.goodsUnitName = goodsUnitName;
 
       },
+      //公共方法，通过
+      //@property=传入的属性名字，需要改变的值
+      //@list=传入的要查询的列表
+      //@param 传入的要查的参数
+      getGoodsCode: function (property, list, param) {
+
+        alert(property);
+        alert(JSON.stringify(this.goods));
+        list.forEach(value => {
+          if (value.label === param) {
+            property = value.value;
+          }
+        });
+      },
 
       getCityCode(name) {
         var cityCode = 0;
@@ -358,8 +363,9 @@
         });
         return this.saveEntranceForm.brand = brandCode;
       },
-      //寻找
-      findGoodsLine(type) {
+      //1寻找商品线，2寻找商品单元
+      findGoodsLine: function (type) {
+
         var code = 0;
         //根据类型来取发送请求的数据
         if (type === 1) {
@@ -391,7 +397,6 @@
       },
 
       validateEntranceData() {
-        this.entranceLoading = true;
 
         //点击增加验证
         setTimeout(() => {
@@ -560,7 +565,6 @@
             if (type === 0) {
               //商品类型
               this.goodsType = results;
-
               //商品线
             } else if (type === 1) {
               this.goodsLine = results;
@@ -682,6 +686,14 @@
     name: 'app',
     data() {
       return {
+        //
+        goods: {
+          type: 0,
+          line: 0,
+          unit: 0
+        },
+        //overAllCode全局查询code
+        overAllCode: 0,
         //根据entranceId获得的流程
         proceduresByEntrance: [],
         centerDialogVisible: false,
@@ -696,20 +708,20 @@
         //验证表单的规则
         validateEntranceForm: {
 
-          // brand: [
-          //   {required: true, message: '请选择品牌', trigger: 'blur'}
-          // ],
-          // goodsType: [
-          //   {required: true, message: '请选择商品类型', trigger: 'blur'}
-          // ],
-          // goodsLine: [
-          //   {required: true, message: '请选择商品线', trigger: 'blur'}
-          // ],
-          // goodsUnit: [
-          //   {required: true, message: '请选择商品单元', trigger: 'blur'}
-          // ],
+          brand: [
+            {required: true, message: '请选择品牌', trigger: 'change'}
+          ],
+          goodsType: [
+            {required: true, message: '请选择商品类型', trigger: 'change'}
+          ],
+          goodsLine: [
+            {required: true, message: '请选择商品线', trigger: 'change'}
+          ],
+          goodsUnit: [
+            {required: true, message: '请选择商品单元', trigger: 'change'}
+          ],
           entranceName: [
-            {required: true, message: '请填写入口名称', trigger: 'blur'}
+            {required: true, message: '请填写入口名称', trigger: 'change'}
           ],
           applicableCity: [
             {required: true, type: 'array', message: '请选择至少一个城市', trigger: 'change'},
@@ -756,19 +768,19 @@
         brandType: [
           {
             label: "58",
-            value: 1,
+            value: "1",
           },
           {
             label: "赶集",
-            value: 2,
+            value: "2",
           },
           {
             label: "安居客",
-            value: 3,
+            value: "3",
           },
           {
             label: "英才",
-            value: 4,
+            value: "4",
           },
 
 
