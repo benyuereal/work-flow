@@ -36,10 +36,13 @@
           </Col>
 
           <Col span="5" id="select-column-state">
-            <p> 流程配置ID：</p><Input v-model="procedureConfigId" placeholder="Enter something..." clearable
+            <p> 流程配置ID：</p><Input v-model="entranceProcedureConfigId" placeholder="Enter something..." clearable
                                   style="width: 100px;height: 30px"></Input>
           </Col>
-          <Col span="2">&nbsp;</Col>
+          <Col span="4">
+            <Button type="primary" icon="ios-search" id="search" style="float: right" @click="getTableData">Search
+            </Button>
+          </Col>
           <!--<Col span="4" id="select-column-search">-->
           <!--<Button type="primary" icon="ios-search" id="search">Search</Button>-->
           <!--</Col>-->
@@ -56,7 +59,7 @@
         &nbsp;
       </Col>
       <Col span="2">
-        <Button type="primary" icon="ios-search" id="search" style="float: left" @click="getTableData">Search</Button>
+        <!--<Button type="primary" icon="ios-search" id="search" style="float: left" @click="getTableData">Search</Button>-->
       </Col>
 
     </Row>
@@ -106,7 +109,21 @@
 
     <!--下面是表单域-->
     <Row style="height: 500px">
-      <Col span="2">&nbsp;</Col>
+      <Col span="2">
+        <!--<el-button type="text" @click="centerDialogVisible = true">点击打开 Dialog</el-button>-->
+
+        <el-dialog
+          title="提示"
+          :visible.sync="centerDialogVisible"
+          width="60%"
+          center>
+          <span>需要注意的是内容是默认不居中的</span>
+          <span slot="footer" class="dialog-footer">
+    <el-button @click="centerDialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="centerDialogVisible = false">确 定</el-button>
+  </span>
+        </el-dialog>
+      </Col>
       <Col span="10">
       </Col>
       <!--<Col span="7">col-6</Col>-->
@@ -114,15 +131,15 @@
 
     <!--弹出的表单域-->
     <Modal
-      @on-ok="saveEntrance"
-      title="流程配置管理"
+      title="入口信息配置"
       v-model="addEntranceModal"
       :styles="{top: '20px'}">
-      <Form :model="saveEntranceForm" :label-width="80" label-position="left">
-        <FormItem label="流程名称">
-          <Input v-model="saveEntranceForm.entranceName" placeholder="Enter something..." clearable></Input>
+      <Form ref="saveEntranceForm" :model="saveEntranceForm" :label-width="80" label-position="left"
+            :rules="validateEntranceForm">
+        <FormItem label="入口名称" prop="entranceName">
+          <Input v-model="saveEntranceForm.entranceName" placeholder="Enter something..."></Input>
         </FormItem>
-        <FormItem label="品牌">
+        <FormItem label="品牌" prop="brand">
           <Select v-model="saveEntranceForm.brand">
             <Option v-for="item in brandType" :value="item.value" :key="item.value"
                     style="width: 100%">{{ item.label
@@ -131,16 +148,16 @@
 
           </Select>
         </FormItem>
-        <FormItem label="适用城市">
+        <FormItem label="适用城市" prop="applicableCity">
           <Select v-model="saveEntranceForm.applicableCity" filterable multiple>
-            <Option v-for="item in addApplicableCity" :value="item.code" :key="item.code"
+            <Option v-for="item in addApplicableCity" :value="item.code" :key="item.name"
                     style="width: 100%">
               {{ item.name
               }}
             </Option>
           </Select>
         </FormItem>
-        <FormItem label="签单类型">
+        <FormItem label="签单类型" prop="written">
           <CheckboxGroup v-model="saveEntranceForm.written">
             <Checkbox v-for="item in writtenType" :label="item.value">{{ item.label
               }}
@@ -148,7 +165,7 @@
 
           </CheckboxGroup>
         </FormItem>
-        <FormItem label="提单入口">
+        <FormItem label="提单入口" prop="bill">
           <CheckboxGroup v-model="saveEntranceForm.bill">
             <Checkbox v-for="item in billType" :label="item.value">{{ item.label
               }}
@@ -156,21 +173,21 @@
 
           </CheckboxGroup>
         </FormItem>
-        <FormItem label="商品类型">
+        <FormItem label="商品类型" prop="goodsType">
           <Select v-model="saveEntranceForm.goodsType" @on-change="findGoodsLine(1)">
             <Option v-for="item in goodsType" :value="item.value" :key="item.value">{{ item.label }}
             </Option>
 
           </Select>
         </FormItem>
-        <FormItem label="商品线">
+        <FormItem label="商品线" prop="goodsLine">
           <Select v-model="saveEntranceForm.goodsLine" @on-change="findGoodsLine(2)">
             <Option v-for="item in goodsLine" :value="item.value" :key="item.value">{{ item.label }}
             </Option>
 
           </Select>
         </FormItem>
-        <FormItem label="商品单元">
+        <FormItem label="商品单元" prop="goodsUnit">
           <Select v-model="saveEntranceForm.goodsUnit">
             <Option v-for="item in goodsUnit" :value="item.value" :key="item.value">{{ item.label }}
             </Option>
@@ -180,25 +197,32 @@
 
 
       </Form>
+      <div slot="footer">
+        <Button type="primary" size="small" style="width: 60px" @click="centerDialogVisible = false">取消</Button>
+
+        <Button type="primary" size="small" style="width: 60px" :loading="entranceLoading"
+                @click="validateEntranceData">确定
+        </Button>
+        <!--<Button type="error" size="large" long :loading="" @click="del">Delete</Button>-->
+      </div>
     </Modal>
     <Modal
       title="入口信息绑定流程"
       v-model="bindEntranceModal"
       :styles="{top: '150px'}">
-      <Form :model="bindEntranceModal" :label-width="80" label-position="left">
+      <Form :model="bindForm" :label-width="80" label-position="left">
 
         <FormItem label="入口选择">
-          <Select v-model="bindEntranceModal.entrance">
-            <Option value="beijing">New York</Option>
-            <Option value="shanghai">London</Option>
-            <Option value="shenzhen">Sydney</Option>
-          </Select>
+          <Input v-model="bindForm.entrance" disabled placeholder="Enter something..."></Input>
+
         </FormItem>
         <FormItem label="流程选择">
-          <Select v-model="bindEntranceModal.procedure">
-            <Option value="beijing">New York</Option>
-            <Option value="shanghai">London</Option>
-            <Option value="shenzhen">Sydney</Option>
+          <Select v-model="bindForm.procedure" filterable>
+            <Option v-for="item in proceduresByEntranceId" :value="item.procedureConfigId" :key="item.procedureName"
+                    style="width: 100%">
+              {{ item.procedureName
+              }}
+            </Option>
           </Select>
         </FormItem>
 
@@ -223,16 +247,119 @@
 
 
     created() {
-      //初始化数据
-      this.initData();
       //初始 获取表格中 数据
       this.getEntranceData();
       //初始化商品类型 刚开始是0,类型是0
       this.getGoodsType(0, 0);
+      this.validateEntranceFormAlive = JSON.parse(JSON.stringify(this.validateEntranceForm))
 
     },
 
     methods: {
+
+      //根据入口名字获取procedure
+      getProcedureByEntranceId(){
+        var entranceName=this.bindForm.entrance;
+        var url='http://localhost:9501/procedure/test';
+        var pageRequest = this.pageRequest;
+        var params = {
+          entranceId:this.bindForm.entrance,
+
+        };
+        this.$http.get(url
+         ,//请求地址，有条件查询流程配置数据
+          {
+            params: params//参数
+          },
+          {
+            emulateJSON: true//是否是json
+          }).then(function (response) {
+          //首先根据返回
+
+          var result = response.data;
+          var data = result.data;
+          var code = result.code;
+          var message = result.message;
+
+          //如果是成功的返回,就会有关于分页的处理
+          if (code === config.SUCCESS) {
+            //如果没有任何信息
+            var type = data.type;
+            //如果是有提示，先打印提示
+            if (type === config.INVALID) {
+
+              this.$Message.warning(message);
+            } else {
+              //否则 就讲数据打印到页面上
+              var count = data.count;
+              var tableData = data.procedures;
+              this.proceduresByEntranceId = tableData;
+            }
+
+          } else {
+            //否则弹出警告，并且在警告上打印出后台返回的信息
+            this.$Message.warning(message);
+
+
+          }
+
+
+        })
+      },
+      //获取商品单元的名称
+      getGoodsUnitName() {
+        var list = this.goodsUnit;
+        var index = list[0];
+        var goodsUnitName = '限时推广';
+        list.forEach(value => {
+          if (value.value === index) {
+            goodsUnitName = value.label;
+          }
+        })
+        this.saveEntranceForm.goodsUnitName = goodsUnitName;
+
+      },
+
+      getCityCode(name) {
+        var cityCode = 0;
+        var cities = city.city;
+        cities.forEach(value => {
+          if (value.name === name) {
+            cityCode = value.code;
+          }
+        });
+        //最后将城市名字赋值
+        if (this.saveEntranceForm.applicableCity.length != 0) {
+          this.saveEntranceForm.applicableCity.forEach(value => {
+            this.saveEntranceForm.applicableCity.pop();
+          });
+        }
+        this.saveEntranceForm.applicableCity.push(cityCode);
+      },
+
+      getCityName() {
+        var list = this.saveEntranceForm.applicableCity;
+        var index = list[0];
+        var cityName = '北京';
+        var cities = city.city;
+        cities.forEach(value => {
+          if (value.code === index) {
+            cityName = value.name;
+          }
+        });
+        //最后将城市名字赋值
+        this.saveEntranceForm.applicableCityName = cityName;
+      },
+      getBrand(label) {
+        var list = this.brandType;
+        var brandCode = 0;
+        list.forEach(value => {
+          if (value.label === label) {
+            brandCode = value.value;
+          }
+        });
+        return this.saveEntranceForm.brand = brandCode;
+      },
       //寻找
       findGoodsLine(type) {
         var code = 0;
@@ -265,15 +392,52 @@
         this.getEntranceData();
       },
 
+      validateEntranceData() {
+        this.entranceLoading = true;
+
+        //点击增加验证
+        setTimeout(() => {
+          this.$refs.saveEntranceForm.validate((valid) => {
+            if (valid) {
+              //校验通过 首先保存数据
+              this.saveEntrance();
+              //验证返回状态
+              var status = this.validateStatus;
+              if (status) {
+                //关闭表单
+                this.addEntranceModal = false;
+                this.$Message.success('Success!');
+              } else {
+                this.$Message.warning(this.warningMessage);
+                this.entranceLoading = false;
+
+              }
+
+            } else {
+              //关闭下面的按钮
+              this.entranceLoading = false;
+
+              this.$Message.error('缺少信息!');
+            }
+          });
+        }, 1000);
+
+
+      },
+
       //保存入口信息
       saveEntrance() {
+        //首先将城市名字找到
+        this.getCityName();
+        //商品单元名字找到
+        this.getGoodsUnitName();
         var request = this.saveEntranceForm;
         //去除""
-        alert(JSON.stringify(request));
         var reqStr = JSON.stringify(request);
         //保存入库
+        var url = this.adding ? 'http://127.0.0.1:9501/entrance/save' : 'http://127.0.0.1:9501/entrance/update';
         this.$http.post(
-          "http://127.0.0.1:9501/entrance/save",
+          url,
           {
             request: reqStr,
           },
@@ -282,10 +446,18 @@
           }
         ).then(function (response) {
           var data = response.data;
-          //如果状态是0 就展示 否则展示默认的
           var code = data.code;
-          alert(code);
-        })
+          var message = data.message;
+          if (code === 0) {
+            this.validateStatus = true;
+          } else {
+            this.validateStatus = false;
+            this.warningMessage = data.message;
+
+          }
+        }, function (res) {
+          this.validateStatus = false;
+        });
       },
       //初始化表格
       getEntranceData() {
@@ -302,7 +474,7 @@
           //签单类型
           written: this.writtenTypeModal,
           //流程配置id
-          procedureConfigId: this.procedureConfigId,
+          procedureConfigId: this.entranceProcedureConfigId,
           //分页条件
           currentPage: this.page.currentPage,
           pageSize: this.page.pageSize,
@@ -332,7 +504,6 @@
           if (code === config.SUCCESS) {
             //如果没有任何信息
             var type = data.type;
-            alert(JSON.stringify(data));
             //如果是有提示，先打印提示
             if (type === config.INVALID) {
 
@@ -407,39 +578,6 @@
         });
       },
 
-      //获取初始化数据
-      initData() {
-        //初始化数据
-        var data;
-        this.$http.get(
-          "http://127.0.0.1:9501/init/formatted",
-          {
-            emulateJSON: true,//是否是json
-          }
-        ).then(function (response) {
-          data = response.data;
-          //如果状态是0 就展示 否则展示默认的
-          var code = data.code;
-          // alert(JSON.stringify(data));
-
-          if (code === 0) {
-            //展示数据开始
-            var playData = data.data;
-            //展示品牌选择
-            this.brandType = playData.brandType;
-            //展示签单选择
-            this.writtenType = playData.writtenType;
-            //展示订单来源选择
-            this.sourceType = playData.sourceType;
-            //新增的
-
-
-          } else {
-            //什么也不做
-          }
-          // alert(JSON.stringify(data));
-        })
-      },
       //获取后台的json数据
       getTableData() {
         this.getEntranceData(1);
@@ -447,22 +585,96 @@
 
       //弹出绑定界面
       showBind(index) {
+        var entity = this.entranceData[index];
+        this.bindForm.entrance = entity.brand;
+        //然后获取流程
+        this.getProcedureByEntranceId();
         this.bindEntranceModal = true;
       },
 
 
-      //删除此条记录,传入的要删除的索引位置
-      remove(index) {
-        alert(index);
+      getWritten(writtenName) {
+        var list = this.writtenType;
+        var written = 0;
+        list.forEach(value => {
+          if (value.label === writtenName) {
+            written = value.value;
+          }
+        });
+        this.saveEntranceForm.written = [written];
+      },
+      getBill(billName) {
+        var list = this.billType;
+        var bill = 0;
+        list.forEach(value => {
+          if (value.label === billName) {
+            bill = value.value;
+          }
+        });
+        this.saveEntranceForm.bill = [bill];
+      },
+      //编辑第几个
+      //去除验证
+      editEntrance(index) {
+
+        if (!this.editing) {
+          this.clearEntranceForm();
+          this.$refs.saveEntranceForm.resetFields();
+        }
+        var entity = this.entranceData[index];
+        //先看品牌
+        this.saveEntranceForm.entranceName = entity.entranceName;
+        this.getBrand(entity.brand);
+        this.getCityCode(entity.applicableCityName);
+        this.getWritten(entity.written);
+        this.saveEntranceForm.entranceName = '流程名字';
+        //去除验证
+
+        this.addEntranceModal = true;
+        this.editing = true;
+        this.adding = false;
       },
 
 
+      clearEntranceForm() {
+        this.saveEntranceForm = {
+          //入口名称
+          entranceName: '',
+
+          //提单类型
+          bill: [],
+
+          goodsType: '',
+          //商品单元
+          goodsUnit: '',
+          //商品线
+          goodsLine: '',
+          goodsUnitName: '',
+          //新增城市绑定
+          applicableCity: [0],
+          applicableCityName: '',
+          //品牌
+          brand: '',
+          //签单类型
+          written: [],
+
+        }
+      },
       //点击显示选框
       addEntrance() {
 
-        if (this.addEntranceModal) {
-          this.addEntranceModal = false;
+        if (!this.adding) {
+          // this.clearEntranceForm();
+          this.$refs.saveEntranceForm.resetFields();
         }
+        this.adding = true;
+        this.editing = false;
+
+        // if (this.addEntranceModal) {
+        //   this.addEntranceModal = false;
+        // }
+
+
         this.addEntranceModal = true;
       },
 
@@ -471,17 +683,59 @@
     name: 'app',
     data() {
       return {
+        //根据entranceId获得的流程
+        proceduresByEntranceId:[],
+        centerDialogVisible: false,
+        adding: false,
+        //表单是否被编辑中
+        editing: false,
+        warningMessage: '',
+        entranceLoading: false,
+        //控制结果返回状态
+        validateStatus: false,
+        validateEntranceFormAlive: null,
+        //验证表单的规则
+        validateEntranceForm: {
+
+          // brand: [
+          //   {required: true, message: '请选择品牌', trigger: 'blur'}
+          // ],
+          // goodsType: [
+          //   {required: true, message: '请选择商品类型', trigger: 'blur'}
+          // ],
+          // goodsLine: [
+          //   {required: true, message: '请选择商品线', trigger: 'blur'}
+          // ],
+          // goodsUnit: [
+          //   {required: true, message: '请选择商品单元', trigger: 'blur'}
+          // ],
+          entranceName: [
+            {required: true, message: '请填写入口名称', trigger: 'blur'}
+          ],
+          applicableCity: [
+            {required: true, type: 'array', message: '请选择至少一个城市', trigger: 'change'},
+          ],
+          bill: [
+            {required: true, type: 'array', min: 1, message: '请选择签约类型', trigger: 'change'},
+            {type: 'array', max: 4, message: '请选择至少一种逻辑', trigger: 'change'}
+          ],
+          written: [
+            {required: true, type: 'array', min: 1, message: '请选择签约类型', trigger: 'change'},
+            {type: 'array', max: 4, message: '请选择至少一种逻辑', trigger: 'change'}
+          ],
+
+        },
         //绑定按钮点击后出现的form
         bindForm: {
           //入口
-          entrance: [],
+          entrance: '',
           //流程
-          procedure: [],
+          procedure: '',
         },
 
 
         //流程配置id
-        procedureConfigId: '',
+        entranceProcedureConfigId: '',
         //初始化的时候是false，表示该modal是隐藏的
         addEntranceModal: false,
         //cityAfter
@@ -500,13 +754,53 @@
 
 
         //品牌
-        brandType: [],
+        brandType: [
+          {
+            label: "58",
+            value: 1,
+          },
+          {
+            label: "赶集",
+            value: 2,
+          },
+          {
+            label: "安居客",
+            value: 3,
+          },
+          {
+            label: "英才",
+            value: 4,
+          },
+
+
+        ],
         brandTypeModal: '',
         //签单类型
-        writtenType: [],
+        writtenType: [{
+          label: "新签",
+          value: 1,
+        },
+          {
+            label: "续签",
+            value: 2,
+          },],
         writtenTypeModal: '',
         //订单来源类型
-        sourceType: [],
+        sourceType: [{
+          label: "58直线在线",
+          value: 1,
+        },
+          {
+            label: "AJK在线提单",
+            value: 2,
+          }, {
+            label: "电子合同",
+            value: 3,
+          },
+          {
+            label: "AJK电子合同",
+            value: 4,
+          },],
         sourceTypeModal: '',
 
         bindEntranceModal: false,//控制绑定
@@ -532,7 +826,7 @@
           },
           {
             title: '适用城市',
-            key: 'applicableCity',
+            key: 'applicableCityName',
             width: 90
           },
           {
@@ -592,7 +886,7 @@
                       this.showBind(params.index)
                     }
                   }
-                }, 'View'),
+                }, '绑定'),
                 h('Button', {
                   props: {
                     type: 'text',
@@ -600,10 +894,11 @@
                   },
                   on: {
                     click: () => {
-                      this.remove(params.index)
+                      this.editEntrance(params.index)
                     }
                   }
-                }, 'Edit')
+                }, '编辑'),
+
               ]);
             }
           }
@@ -615,20 +910,22 @@
           entranceName: '',
 
           //提单类型
-          bill: this.billType,
+          bill: [],
 
           goodsType: '',
           //商品单元
           goodsUnit: '',
           //商品线
           goodsLine: '',
-
+          goodsUnitName: '',
           //新增城市绑定
           applicableCity: [],
+          applicableCityName: '',
           //品牌
           brand: '',
           //签单类型
-          written: this.writtenType,
+          written: [],
+
         },
         //新增适用城市
         addApplicableCity: city.city,
@@ -739,7 +1036,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
     color: #2c3e50;
-    margin-top: 60px;
+    margin-top: 20px;
 
   }
 

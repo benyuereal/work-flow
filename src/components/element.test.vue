@@ -31,10 +31,10 @@
             <Option v-for="item in state" :value="item.value" :key="item.value">{{ item.label }}</Option>
           </Select>
           </Col>
-          <Col span="4">&nbsp;</Col>
-          <Col span="5" id="select-column-search">
+          <Col span="5">&nbsp;</Col>
+          <Col span="4" id="select-column-search">
             &nbsp;
-            <!--<Button type="primary" icon="ios-search" id="search">Search</Button>-->
+            <Button type="primary" icon="ios-search" id="search" style="float: right" @click="findProcedure">Search</Button>
           </Col>
         </Row>
       </Col>
@@ -51,7 +51,7 @@
         &nbsp;
       </Col>
       <Col span="2">
-        <Button type="primary" icon="ios-search" id="search" style="float: left" @click="findProcedure">Search</Button>
+        <!--<Button type="primary" icon="ios-search" id="search" style="float: left" @click="findProcedure">Search</Button>-->
       </Col>
 
     </Row>
@@ -888,7 +888,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
     color: #2c3e50;
-    margin-top: 60px;
+    margin-top: 20px;
 
   }
 
